@@ -1,9 +1,8 @@
 package com.example.user_search;
 
+import com.example.user_search.service.UserService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import com.example.user_search.model.User;
-import com.example.user_search.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 
@@ -19,42 +18,41 @@ public class UserSearchApplication {
     }
 
     @Bean
-    public CommandLineRunner run(UserRepository userRepository){
+    public CommandLineRunner run(UserService userService) { // Используем сервис вместо репозитория
         return args -> {
             Scanner scanner = new Scanner(System.in);
             System.out.println("\n=== Приложение готово к работе");
 
-            while (true){
-                System.out.println("\nВыберите действие: 1-Добавить юзера, 2-Показать всех, 3-Удалить юзера,  0-Выход");
+            while (true) {
+                System.out.println("\nВыберите действие: 1-Добавить юзера, 2-Показать всех, 3-Удалить юзера, 4-Изменить, 0-Выход");
                 String choice = scanner.nextLine();
 
                 switch (choice) {
                     case "1" -> {
                         System.out.println("Введите имя: ");
                         String name = scanner.nextLine();
-                        userRepository.save(new User(name));
+                        // Для сохранения можно вызвать updateUserName(null, name) или оставить репозиторий,
+                        // но раз мы перешли на сервис, давай добавим в UserService простой метод save
+                        userService.updateUserName(null, name);
                         System.out.println("Успешно сохранено!");
                     }
                     case "2" -> {
                         System.out.println("Список пользователей из БД");
-                        userRepository.findAll().forEach(user -> {
+                        userService.getAllUsers().forEach(user -> {
                             System.out.println("ID: " + user.getId() + ", Name: " + user.getUsername());
                         });
                     }
                     case "3" -> {
                         while (true) {
-                            userRepository.findAll().forEach(user -> {
+                            userService.getAllUsers().forEach(user -> {
                                 System.out.println("ID: " + user.getId() + ", Name: " + user.getUsername());
                             });
                             System.out.println("Выберите ID имени который хотели бы удалить");
                             Long idDeleteUsername = Long.valueOf(scanner.nextLine());
 
-                            if (userRepository.existsById(idDeleteUsername)) {
-                                userRepository.deleteById(idDeleteUsername);
-                                System.out.println("Юзер с ID: " + idDeleteUsername + " успешно удален!");
-                            } else {
-                                System.out.println("Юзер с ID: " + idDeleteUsername + " не существует!");
-                            }
+                            // Вызываем метод сервиса (он сам проверит существование и удалит)
+                            userService.deleteUser(idDeleteUsername);
+
                             System.out.println("Хотите продолжить процесс удаления юсеров?");
                             System.out.println(" 1 - Да, 2 - Нет");
                             String answer = scanner.nextLine();
@@ -65,25 +63,17 @@ public class UserSearchApplication {
                         }
                     }
                     case "4" -> {
-                        userRepository.findAll().forEach(user -> {
+                        userService.getAllUsers().forEach(user -> {
                             System.out.println("ID: " + user.getId() + ", Name: " + user.getUsername());
                         });
                         System.out.println("Выберите ID имени который хотели бы изменить");
 
                         Long idOfName = Long.valueOf(scanner.nextLine());
+                        System.out.print("Введите новое имя: ");
+                        String newName = scanner.nextLine();
 
-                        userRepository.findById(idOfName).ifPresentOrElse(user -> {
-                            System.out.println("Текущее имя: " + user.getUsername());
-                            System.out.print("Введите новое имя: ");
-                            String newName = scanner.nextLine();
-
-                            user.setUsername(newName);
-
-                            userRepository.save(user);
-                            System.out.println("Имя успешно сохранено");
-                        }, () -> {
-                            System.out.println("Пользователь с таким ID не найден.");
-                        });
+                        // Вся логика findById и save теперь внутри этого метода в сервисе
+                        userService.updateUserName(idOfName, newName);
                     }
                     case "0" -> {
                         System.out.println("Выход...");
