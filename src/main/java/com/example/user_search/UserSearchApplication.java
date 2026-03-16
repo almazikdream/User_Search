@@ -31,9 +31,8 @@ public class UserSearchApplication {
                     case "1" -> {
                         System.out.println("Введите имя: ");
                         String name = scanner.nextLine();
-                        // Для сохранения можно вызвать updateUserName(null, name) или оставить репозиторий,
-                        // но раз мы перешли на сервис, давай добавим в UserService простой метод save
-                        userService.updateUserName(null, name);
+
+                        userService.saveUser(name);
                         System.out.println("Успешно сохранено!");
                     }
                     case "2" -> {

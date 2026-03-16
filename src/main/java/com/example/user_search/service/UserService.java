@@ -38,4 +38,13 @@ public class UserService {
             System.out.println("Пользователь с таким ID не найден!");
         }
     }
+
+    public void saveUser(String name) {
+        User newUser = new User();
+        // Проверь, как называется поле в твоем Entity (User.java).
+        // Судя по методу updateUserName, оно называется username
+        newUser.setUsername(name);
+
+        userRepository.save(newUser);
+    }
 }
